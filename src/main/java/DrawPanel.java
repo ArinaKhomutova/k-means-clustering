@@ -12,5 +12,7 @@ class DrawPanel extends JPanel {
         super.paintComponent(g);
         g.drawImage(imag, 0, 0, this);
         this.setBounds(50,45,500,260);
+        System.out.println("123"+ this.hashCode());
+
     }
 }

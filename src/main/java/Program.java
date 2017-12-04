@@ -1,3 +1,7 @@
+import org.apache.commons.math3.ml.clustering.CentroidCluster;
+import org.apache.commons.math3.ml.clustering.DoublePoint;
+import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -6,6 +10,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Program {
     private MyFrame myFrame;
@@ -16,6 +21,7 @@ public class Program {
     private ArrayList<Point2D> listCentersOfCluster;
     private boolean isDrawing = true;
     private int countOfDrawedPoints;
+    private boolean isClustered;
 
     public Program() {
         myFrame = new MyFrame("Кластеризация по улучшенному методу k-средних");
@@ -39,6 +45,9 @@ public class Program {
         initializeButton.setSize(145, 20);
         jPanel.add(initializeButton);
 
+        drawPanel = new DrawPanel();
+        drawPanel.setSize(1, 1);
+
         initializeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
                 try {
@@ -51,19 +60,19 @@ public class Program {
 
                 listCentersOfCluster = new ArrayList<Point2D>();
                 isDrawing = false;
+            }
+        });
 
-                drawPanel.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        if (countOfDrawedPoints < countOfClusters) {
-                            listCentersOfCluster.add(e.getPoint());
-                            Graphics point = drawPanel.getGraphics();
-                            point.setColor(Color.red);
-                            point.fillOval(e.getX(), e.getY(), 10, 10);
-                            countOfDrawedPoints++;
-                        }
-                    }
-                });
+        drawPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (countOfDrawedPoints < countOfClusters && !isClustered) {
+                    listCentersOfCluster.add(e.getPoint());
+                    Graphics point = drawPanel.getGraphics();
+                    point.setColor(Color.red);
+                    point.fillOval(e.getX(), e.getY(), 10, 10);
+                    countOfDrawedPoints++;
+                }
             }
         });
 
@@ -74,6 +83,7 @@ public class Program {
         clusterButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
                 // TODO: написать функцию кластеризации точек
+
             }
 
         });
@@ -84,17 +94,19 @@ public class Program {
         jPanel.add(cleanButton);
         cleanButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
-                // TODO: написать функцию очистки поля
+                drawPanel.repaint();
+                isClustered = false;
+                isDrawing = true;
+                listCentersOfCluster = new ArrayList<Point2D>();
+                listOfPoint = new ArrayList<Point2D>();
+                countOfDrawedPoints = 0;
+                countOfClusters = 0;
             }
         });
         myFrame.setContentPane(jPanel);
 
-        drawPanel = new DrawPanel();
-        drawPanel.setSize(1, 1);
-        jPanel.add(drawPanel);
-
         listOfPoint = new ArrayList<Point2D>();
-            drawPanel.addMouseListener(new MouseAdapter() {
+        drawPanel.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if (isDrawing) {
@@ -105,7 +117,9 @@ public class Program {
                     }
                 }
             });
+        jPanel.add(drawPanel);
     }
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
