@@ -1,16 +1,9 @@
-import org.apache.commons.math3.ml.clustering.CentroidCluster;
-import org.apache.commons.math3.ml.clustering.DoublePoint;
-import org.apache.commons.math3.ml.clustering.KMeansPlusPlusClusterer;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Program {
     private MyFrame myFrame;
@@ -48,19 +41,17 @@ public class Program {
         drawPanel = new DrawPanel();
         drawPanel.setSize(1, 1);
 
-        initializeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                try {
-                    countOfClusters = Integer.parseInt(countOfClustersField.getText());
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(null, "Введите количество центров для кластера",
-                            "Ошибка", JOptionPane.ERROR_MESSAGE);
-                }
-
-
-                listCentersOfCluster = new ArrayList<Point2D>();
-                isDrawing = false;
+        initializeButton.addActionListener(actionEvent -> {
+            try {
+                countOfClusters = Integer.parseInt(countOfClustersField.getText());
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Введите количество центров для кластера",
+                        "Ошибка", JOptionPane.ERROR_MESSAGE);
             }
+
+
+            listCentersOfCluster = new ArrayList<>();
+            isDrawing = false;
         });
 
         drawPanel.addMouseListener(new MouseAdapter() {
@@ -80,11 +71,8 @@ public class Program {
         clusterButton.setLocation(355, 5);
         clusterButton.setSize(120, 20);
         jPanel.add(clusterButton);
-        clusterButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                // TODO: написать функцию кластеризации точек
-
-            }
+        clusterButton.addActionListener(actionEvent -> {
+            // TODO: написать функцию кластеризации точек
 
         });
 
@@ -92,20 +80,18 @@ public class Program {
         cleanButton.setLocation(485, 5);
         cleanButton.setSize(120, 20);
         jPanel.add(cleanButton);
-        cleanButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                drawPanel.repaint();
-                isClustered = false;
-                isDrawing = true;
-                listCentersOfCluster = new ArrayList<Point2D>();
-                listOfPoint = new ArrayList<Point2D>();
-                countOfDrawedPoints = 0;
-                countOfClusters = 0;
-            }
+        cleanButton.addActionListener(actionEvent -> {
+            drawPanel.repaint();
+            isClustered = false;
+            isDrawing = true;
+            listCentersOfCluster = new ArrayList<>();
+            listOfPoint = new ArrayList<>();
+            countOfDrawedPoints = 0;
+            countOfClusters = 0;
         });
         myFrame.setContentPane(jPanel);
 
-        listOfPoint = new ArrayList<Point2D>();
+        listOfPoint = new ArrayList<>();
         drawPanel.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
@@ -122,10 +108,6 @@ public class Program {
 
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new Program();
-            }
-        });
+        SwingUtilities.invokeLater(Program::new);
     }
 }
