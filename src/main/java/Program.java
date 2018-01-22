@@ -2,19 +2,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Program {
     private MyFrame myFrame;
     private DrawPanel drawPanel;
     private JPanel jPanel;
-    private ArrayList<Point2D> listOfPoint;
-    private int countOfClusters;
-    private ArrayList<Point2D> listCentersOfCluster;
     private boolean isDrawing = true;
-    private int countOfDrawedPoints;
-    private boolean isClustered;
+    private int countOfClusters;
+    private KMeans kMeans = new KMeans();
+
 
     public Program() {
         myFrame = new MyFrame("Кластеризация по улучшенному методу k-средних");
@@ -33,47 +31,30 @@ public class Program {
         countOfClustersField.setSize(40, 20);
         jPanel.add(countOfClustersField);
 
-        JButton initializeButton = new JButton("Инициализировать");
-        initializeButton.setLocation(200, 5);
-        initializeButton.setSize(145, 20);
-        jPanel.add(initializeButton);
-
         drawPanel = new DrawPanel();
         drawPanel.setSize(1, 1);
 
-        initializeButton.addActionListener(actionEvent -> {
-            try {
-                countOfClusters = Integer.parseInt(countOfClustersField.getText());
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(null, "Введите количество центров для кластера",
-                        "Ошибка", JOptionPane.ERROR_MESSAGE);
-            }
-
-
-            listCentersOfCluster = new ArrayList<>();
-            isDrawing = false;
-        });
-
-        drawPanel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (countOfDrawedPoints < countOfClusters && !isClustered) {
-                    listCentersOfCluster.add(e.getPoint());
-                    Graphics point = drawPanel.getGraphics();
-                    point.setColor(Color.red);
-                    point.fillOval(e.getX(), e.getY(), 10, 10);
-                    countOfDrawedPoints++;
-                }
-            }
-        });
 
         JButton clusterButton = new JButton("Кластер");
         clusterButton.setLocation(355, 5);
         clusterButton.setSize(120, 20);
         jPanel.add(clusterButton);
         clusterButton.addActionListener(actionEvent -> {
-            // TODO: написать функцию кластеризации точек
+            try {
+                countOfClusters = Integer.parseInt(countOfClustersField.getText());
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Введите количество кластеров",
+                        "Ошибка", JOptionPane.ERROR_MESSAGE);
+            }
+            if (countOfClusters > kMeans.getQuantityPoints()) {
+                JOptionPane.showMessageDialog(
+                        null,
+                        "Количество кластеров превышает количество точек.",
+                        "Ошибка", JOptionPane.ERROR_MESSAGE);
+            }
+            buttonCluster(countOfClusters);
 
+            isDrawing = false;
         });
 
         JButton cleanButton = new JButton("Очистить");
@@ -82,24 +63,18 @@ public class Program {
         jPanel.add(cleanButton);
         cleanButton.addActionListener(actionEvent -> {
             drawPanel.repaint();
-            isClustered = false;
             isDrawing = true;
-            listCentersOfCluster = new ArrayList<>();
-            listOfPoint = new ArrayList<>();
-            countOfDrawedPoints = 0;
-            countOfClusters = 0;
+            kMeans.clearKMeans();
         });
         myFrame.setContentPane(jPanel);
 
-        listOfPoint = new ArrayList<>();
         drawPanel.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if (isDrawing) {
-                        listOfPoint.add(e.getPoint());
-                        Graphics point = drawPanel.getGraphics();
-                        point.setColor(Color.black);
-                        point.fillOval(e.getX(), e.getY(), 5, 5);
+                        CustomPoint customPoint = new CustomPoint(e.getX(), e.getY());
+                        drawPoint(customPoint, drawPanel.getGraphics(), Color.black);
+                        kMeans.addPoint(customPoint);
                     }
                 }
             });
@@ -109,5 +84,30 @@ public class Program {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(Program::new);
+    }
+
+    private void buttonCluster(int quantity) {
+        kMeans.start(quantity);
+
+        Graphics graphics = drawPanel.getGraphics();
+        graphics.setColor(Color.white);
+        graphics.fillRect(0, 0, drawPanel.getWidth(), drawPanel.getHeight());
+
+        for (Cluster cluster : kMeans.getClusters()) {
+            drawPoint(cluster.getCurrentCenter(), graphics, Color.green);
+            drawPoints(cluster.getClusterPoints(), graphics, Color.black);
+        }
+    }
+
+    private void drawPoints(List<CustomPoint> points, Graphics graphics, Color color) {
+        for (CustomPoint point : points) {
+            drawPoint(point, graphics, color);
+        }
+    }
+
+    private void drawPoint(CustomPoint customPoint, Graphics graphics, Color color) {
+        int circleSize = 10;
+        graphics.setColor(color);
+        graphics.fillOval(customPoint.getX(), customPoint.getY(), circleSize, circleSize);
     }
 }
